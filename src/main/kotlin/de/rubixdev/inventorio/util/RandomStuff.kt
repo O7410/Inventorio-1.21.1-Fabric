@@ -5,15 +5,13 @@ package de.rubixdev.inventorio.util
 import de.rubixdev.inventorio.config.PlayerSettings
 import de.rubixdev.inventorio.mixin.accessor.ScreenHandlerAccessor
 import de.rubixdev.inventorio.player.PlayerInventoryAddon
-import java.util.function.Consumer
-import java.util.function.Supplier
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
-import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
+import net.minecraft.enchantment.Enchantments
 import net.minecraft.item.ItemStack
 import net.minecraft.item.TridentItem
+import net.minecraft.registry.RegistryKeys
 import net.minecraft.screen.ScreenHandler
+import net.minecraft.world.WorldView
 import org.apache.logging.log4j.LogManager
 
 data class Point2I(@JvmField val x: Int, @JvmField val y: Int)
@@ -50,30 +48,15 @@ val logger = LogManager.getLogger("Inventorio")!!
 val ItemStack.isNotEmpty
     get() = !this.isEmpty
 
-fun canRMBItem(itemStack: ItemStack): Boolean {
+fun canRMBItem(itemStack: ItemStack, world: WorldView): Boolean {
+    val enchantmentRegistry = world.registryManager.get(RegistryKeys.ENCHANTMENT)
+    val loyaltyEntry = enchantmentRegistry.entryOf(Enchantments.LOYALTY)
+    val riptideEntry = enchantmentRegistry.entryOf(Enchantments.RIPTIDE)
     return PlayerSettings.canThrowUnloyalTrident.boolValue
         || itemStack.item !is TridentItem
-        || EnchantmentHelper.getLoyalty(itemStack) > 0
-        || EnchantmentHelper.getRiptide(itemStack) > 0
+        || EnchantmentHelper.getLevel(loyaltyEntry, itemStack) > 0
+        || EnchantmentHelper.getLevel(riptideEntry, itemStack) > 0
 }
-
-fun Enchantment.getLevelOn(stack: ItemStack): Int {
-    //#if FORGELIKE
-    //$$ return stack.getEnchantmentLevel(this)
-    //#else
-    return EnchantmentHelper.getLevel(this, stack)
-    //#endif
-}
-
-fun <E> MutableList<E>.subList(indices: IntRange) = subList(indices.first, indices.last + 1)
 
 fun ScreenHandler.insertItem(stack: ItemStack, indices: IntRange, fromLast: Boolean = false): Boolean =
     (this as ScreenHandlerAccessor).callInsertItem(stack, indices.first, indices.last + 1, fromLast)
-
-class MixinDelegate<T>(
-    private val getter: Supplier<T>,
-    private val setter: Consumer<T>,
-) : ReadWriteProperty<Any?, T> {
-    override fun getValue(thisRef: Any?, property: KProperty<*>): T = getter.get()
-    override fun setValue(thisRef: Any?, property: KProperty<*>, value: T) = setter.accept(value)
-}

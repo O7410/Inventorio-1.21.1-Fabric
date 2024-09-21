@@ -1,23 +1,30 @@
 package de.rubixdev.inventorio.player.inventory
 
+
+
+//#if MC >= 12002
+import com.google.common.collect.MultimapBuilder
 import de.rubixdev.inventorio.mixin.client.accessor.MinecraftClientAccessor
 import de.rubixdev.inventorio.packet.InventorioNetworking
-import de.rubixdev.inventorio.util.getLevelOn
-import kotlin.math.max
 import net.minecraft.block.BlockState
+import net.minecraft.block.Blocks
+import net.minecraft.block.StainedGlassBlock
 import net.minecraft.client.MinecraftClient
+import net.minecraft.component.DataComponentTypes
+import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.EquipmentSlot
+import net.minecraft.entity.attribute.EntityAttribute
+import net.minecraft.entity.attribute.EntityAttributeModifier
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.projectile.FireworkRocketEntity
 import net.minecraft.item.FireworkRocketItem
 import net.minecraft.item.ItemStack
 import net.minecraft.item.Items
 import net.minecraft.item.ToolItem
-
-//#if MC >= 12002
-import net.minecraft.block.Blocks
-import net.minecraft.block.StainedGlassBlock
+import net.minecraft.registry.RegistryKeys
+import net.minecraft.registry.entry.RegistryEntry
+import kotlin.math.max
 //#else
 //$$ import net.minecraft.block.AbstractGlassBlock
 //#endif
@@ -54,7 +61,8 @@ abstract class PlayerInventoryExtraStuff protected constructor(player: PlayerEnt
         //$$ val isGlass = block.block is AbstractGlassBlock
         //#endif
         if (isGlass) {
-            return toolBelt.firstOrNull { Enchantments.SILK_TOUCH.getLevelOn(it) > 0 } ?: ItemStack.EMPTY
+            val silkTouchEntry = player.world.registryManager.get(RegistryKeys.ENCHANTMENT).entryOf(Enchantments.SILK_TOUCH)
+            return toolBelt.firstOrNull { EnchantmentHelper.getLevel(silkTouchEntry, it) > 0 } ?: ItemStack.EMPTY
         }
         return ItemStack.EMPTY
     }
@@ -82,12 +90,16 @@ abstract class PlayerInventoryExtraStuff protected constructor(player: PlayerEnt
             findFittingToolBeltStack(ItemStack(Items.DIAMOND_AXE))
         }
         // For some reason we need to manually add weapon's attack modifiers - the game doesn't do that for us
-        player.attributes.addTemporaryModifiers(displayTool.getAttributeModifiers(EquipmentSlot.MAINHAND))
+        val attributeModifiers = MultimapBuilder.hashKeys().hashSetValues().build<RegistryEntry<EntityAttribute>, EntityAttributeModifier>()
+        displayTool.applyAttributeModifiers(EquipmentSlot.MAINHAND) { entry, modifier -> attributeModifiers.put(entry, modifier) }
+        player.attributes.addTemporaryModifiers(attributeModifiers)
     }
 
     fun postPlayerAttack() {
         if (!playerAttackConditions()) return
-        player.attributes.removeModifiers(displayTool.getAttributeModifiers(EquipmentSlot.MAINHAND))
+        val attributeModifiers = MultimapBuilder.hashKeys().hashSetValues().build<RegistryEntry<EntityAttribute>, EntityAttributeModifier>()
+        displayTool.applyAttributeModifiers(EquipmentSlot.MAINHAND) { entry, modifier -> attributeModifiers.put(entry, modifier) }
+        player.attributes.removeModifiers(attributeModifiers)
     }
 
     fun fireRocketFromInventory() {
@@ -105,7 +117,7 @@ abstract class PlayerInventoryExtraStuff protected constructor(player: PlayerEnt
     }
 
     private fun tryFireRocket(itemStack: ItemStack): Boolean {
-        if (itemStack.item is FireworkRocketItem && itemStack.getSubNbt("Fireworks")?.getList("Explosions", 10)?.isEmpty() != false) {
+        if (itemStack.item is FireworkRocketItem && itemStack.get(DataComponentTypes.FIREWORKS)?.explosions?.isEmpty() != false) {
             val copyStack = itemStack.copy()
             if (!player.abilities.creativeMode) {
                 itemStack.decrement(1)

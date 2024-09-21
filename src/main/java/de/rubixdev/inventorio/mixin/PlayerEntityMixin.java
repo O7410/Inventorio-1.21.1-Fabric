@@ -96,7 +96,7 @@ public abstract class PlayerEntityMixin implements PlayerDuck {
      */
     @Inject(method = "equipStack", at = @At(value = "RETURN"))
     private void inventorioOnEquipArmor(EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
-        if (slot.getType() == EquipmentSlot.Type.ARMOR) MixinHelpers
+        if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) MixinHelpers
             .withScreenHandler((PlayerEntity) (Object) this, InventorioScreenHandler::updateDeepPocketsCapacity);
     }
 
@@ -129,13 +129,18 @@ public abstract class PlayerEntityMixin implements PlayerDuck {
      */
     @Inject(method = "readCustomDataFromNbt", at = @At(value = "RETURN"))
     private void inventorioDeserializePlayerAddon(NbtCompound tag, CallbackInfo ci) {
-        PlayerAddonSerializer.INSTANCE.deserialize(inventorioAddon, tag.getCompound("Inventorio"));
+        PlayerAddonSerializer.INSTANCE.deserialize(
+            inventorioAddon,
+            tag.getCompound("Inventorio"),
+            ((PlayerEntity) (Object) this).getRegistryManager()
+        );
     }
 
     @Inject(method = "writeCustomDataToNbt", at = @At(value = "RETURN"))
     private void inventorioSerializePlayerAddon(NbtCompound tag, CallbackInfo ci) {
         NbtCompound inventorioTag = new NbtCompound();
-        PlayerAddonSerializer.INSTANCE.serialize(inventorioAddon, inventorioTag);
+        PlayerAddonSerializer.INSTANCE
+            .serialize(inventorioAddon, inventorioTag, ((PlayerEntity) (Object) this).getRegistryManager());
         tag.put("Inventorio", inventorioTag);
     }
 

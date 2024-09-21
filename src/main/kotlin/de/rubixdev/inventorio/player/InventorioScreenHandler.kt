@@ -18,16 +18,17 @@ import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.MinecraftClient
 import net.minecraft.entity.EquipmentSlot
-import net.minecraft.entity.mob.MobEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.PlayerInventory
 import net.minecraft.inventory.CraftingInventory
 import net.minecraft.inventory.CraftingResultInventory
 import net.minecraft.inventory.Inventory
 import net.minecraft.item.ItemStack
-import net.minecraft.recipe.Recipe
+import net.minecraft.recipe.CraftingRecipe
+import net.minecraft.recipe.RecipeEntry
 import net.minecraft.recipe.RecipeMatcher
 import net.minecraft.recipe.book.RecipeBookCategory
+import net.minecraft.recipe.input.CraftingRecipeInput
 import net.minecraft.screen.AbstractRecipeScreenHandler
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory
 import net.minecraft.screen.slot.CraftingResultSlot
@@ -36,19 +37,9 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 
-//#if MC >= 12002
-import net.minecraft.recipe.RecipeEntry
-//#endif
-
-/**
-* Note: **Do not extend this class!** It is only marked as `open` for compatibility purposes.
-*/
-// TODO: remove `open` modifier once old api package is removed
-@Suppress("LeakingThis")
-open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) :
-    AbstractRecipeScreenHandler<CraftingInventory?>(ScreenTypeProvider.INSTANCE.getScreenHandlerType(), syncId) {
+class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) :
+    AbstractRecipeScreenHandler<CraftingRecipeInput, CraftingRecipe>(ScreenTypeProvider.INSTANCE.getScreenHandlerType(), syncId) {
     val inventoryAddon = inventory.player.inventoryAddon!!
-
     private val craftingInput = CraftingInventory(this, 2, 2)
     private val craftingResult = CraftingResultInventory()
 
@@ -69,7 +60,7 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
 
         // Armor
         for ((_, relativeIndex) in armorSlotsRange.withRelativeIndex())
-            addSlot(ArmorSlot(inventory, 39 - relativeIndex, 8, 8 + relativeIndex * 18, armorSlots[relativeIndex]))
+            addSlot(ArmorSlot(this, inventory, inventory.player, armorSlots[relativeIndex], 39 - relativeIndex, 8, 8 + relativeIndex * 18))
 
         // Main Inventory
         for ((_, relativeIndex) in mainInventoryWithoutHotbarRange.withRelativeIndex())
@@ -131,7 +122,7 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
         val stackDynamic = sourceSlot.stack
         // fix for #191, issue where "Origins: Classes" copies the crafting result stack each time it is accessed,
         // so we have to pass the same `stackDynamic` to the inner function instead of re-getting it
-        val stackStatic = quickMoveInner(sourceIndex, stackDynamic)
+        val stackStatic = quickMoveInner(player, sourceIndex, stackDynamic)
         if (stackStatic.isNotEmpty) {
             if (stackDynamic.isEmpty) {
                 sourceSlot.stack = ItemStack.EMPTY
@@ -148,14 +139,14 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
         return stackStatic
     }
 
-    private fun quickMoveInner(sourceIndex: Int, stackDynamic: ItemStack): ItemStack {
+    private fun quickMoveInner(player: PlayerEntity, sourceIndex: Int, stackDynamic: ItemStack): ItemStack {
         val stackStatic = stackDynamic.copy()
         val availableDeepPocketsRange = getAvailableDeepPocketsRange()
 
         // First, we want to transfer armor or tools into their respective slots from any other section
         if (sourceIndex in mainInventoryRange || sourceIndex in availableDeepPocketsRange) {
             // Try to send an item into the armor slots
-            if (MobEntity.getPreferredEquipmentSlot(stackStatic).type == EquipmentSlot.Type.ARMOR
+            if (player.getPreferredEquipmentSlot(stackStatic).type == EquipmentSlot.Type.HUMANOID_ARMOR
                 && insertItem(stackDynamic, armorSlotsRange)
             ) {
                 updateDeepPocketsCapacity()
@@ -208,9 +199,7 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
 
     override fun onSlotClick(slotIndex: Int, clickData: Int, actionType: SlotActionType, playerEntity: PlayerEntity) {
         super.onSlotClick(slotIndex, clickData, actionType, playerEntity)
-        if (slotIndex in armorSlotsRange) {
-            updateDeepPocketsCapacity()
-        } else if (slotIndex in utilityBeltRange && inventoryAddon.getSelectedUtilityStack().isEmpty) {
+        if (slotIndex !in armorSlotsRange && slotIndex in utilityBeltRange && inventoryAddon.getSelectedUtilityStack().isEmpty) {
             inventoryAddon.selectedUtility = slotIndex - utilityBeltRange.first
         }
     }
@@ -289,18 +278,18 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
 
         for ((absoluteIndex, relativeIndex) in mainInventoryWithoutHotbarRange.withRelativeIndex()) {
             val slot = getSlot(absoluteIndex) as SlotAccessor
-            slot.x = SLOTS_INVENTORY_MAIN(deepPocketsRowCount).x + SLOT_UI_SIZE * (relativeIndex % VANILLA_ROW_LENGTH)
-            slot.y = SLOTS_INVENTORY_MAIN(deepPocketsRowCount).y + SLOT_UI_SIZE * (relativeIndex / VANILLA_ROW_LENGTH)
+            slot.setX(SLOTS_INVENTORY_MAIN(deepPocketsRowCount).x + SLOT_UI_SIZE * (relativeIndex % VANILLA_ROW_LENGTH))
+            slot.setY(SLOTS_INVENTORY_MAIN(deepPocketsRowCount).y + SLOT_UI_SIZE * (relativeIndex / VANILLA_ROW_LENGTH))
         }
         for ((absoluteIndex, relativeIndex) in hotbarRange.withRelativeIndex()) {
             val slot = getSlot(absoluteIndex) as SlotAccessor
-            slot.x = SLOTS_INVENTORY_HOTBAR(deepPocketsRowCount).x + SLOT_UI_SIZE * relativeIndex
-            slot.y = SLOTS_INVENTORY_HOTBAR(deepPocketsRowCount).y
+            slot.setX(SLOTS_INVENTORY_HOTBAR(deepPocketsRowCount).x + SLOT_UI_SIZE * relativeIndex)
+            slot.setY(SLOTS_INVENTORY_HOTBAR(deepPocketsRowCount).y)
         }
         for ((absoluteIndex, relativeIndex) in toolBeltRange.withRelativeIndex()) {
             val slot = getSlot(absoluteIndex) as SlotAccessor
-            slot.x = ToolBeltSlot.getSlotPosition(deepPocketsRowCount, relativeIndex, getToolBeltSlotCount()).x
-            slot.y = ToolBeltSlot.getSlotPosition(deepPocketsRowCount, relativeIndex, getToolBeltSlotCount()).y
+            slot.setX(ToolBeltSlot.getSlotPosition(deepPocketsRowCount, relativeIndex, getToolBeltSlotCount()).x)
+            slot.setY(ToolBeltSlot.getSlotPosition(deepPocketsRowCount, relativeIndex, getToolBeltSlotCount()).y)
         }
     }
 
@@ -343,21 +332,15 @@ open class InventorioScreenHandler(syncId: Int, val inventory: PlayerInventory) 
         craftingInput.clear()
     }
 
-    //#if MC >= 12002
-    override fun matches(recipe: RecipeEntry<out Recipe<CraftingInventory?>>?): Boolean {
+    override fun matches(recipe: RecipeEntry<CraftingRecipe>?): Boolean {
         if (recipe != null) {
-            return recipe.value.matches(craftingInput, inventory.player.world)
+            return recipe.value.matches(craftingInput.createRecipeInput(), inventory.player.world)
         }
         return false
     }
-    //#else
-    //$$ override fun matches(recipe: Recipe<in CraftingInventory?>): Boolean {
-    //$$     return recipe.matches(craftingInput, inventory.player.world)
-    //$$ }
-    //#endif
 
     override fun onContentChanged(inventory: Inventory) {
-        CraftingScreenHandlerAccessor.updateTheResult(this, this.inventory.player.world, this.inventory.player, this.craftingInput, this.craftingResult)
+        CraftingScreenHandlerAccessor.updateTheResult(this, this.inventory.player.world, this.inventory.player, this.craftingInput, this.craftingResult, null)
     }
 
     override fun onClosed(player: PlayerEntity) {

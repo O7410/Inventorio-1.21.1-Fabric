@@ -1,6 +1,7 @@
 package de.rubixdev.inventorio.util
 
-@Suppress("UNUSED_PARAMETER")
+import net.fabricmc.loader.api.FabricLoader
+
 object PlatformApi {
-    fun isModLoaded(modId: String): Boolean = throw IllegalStateException()
+    fun isModLoaded(modId: String): Boolean = FabricLoader.getInstance().isModLoaded(modId)
 }

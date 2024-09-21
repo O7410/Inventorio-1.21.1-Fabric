@@ -28,8 +28,7 @@ public abstract class LivingEntityMixin extends Entity {
      * This optional mixin allows a Totem of Undying to be used automatically
      * from any Utility Slot.
      */
-    @SuppressWarnings("InvalidInjectorMethodSignature")
-//    @ModifyVariable(
+    // @ModifyVariable(
 //            method = "tryUseTotem",
 //            at = @At(value = "JUMP", ordinal = 2, shift = At.Shift.BEFORE),
 //            slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrement(I)V")),

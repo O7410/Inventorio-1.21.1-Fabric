@@ -1,7 +1,7 @@
 import kotlin.reflect.KProperty
 import kotlin.reflect.jvm.jvmErasure
 import org.gradle.jvm.tasks.Jar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     id("maven-publish")
@@ -134,6 +134,12 @@ loom {
     }
 }
 
+if (loader.isFabric) {
+    fabricApi {
+        configureDataGeneration()
+    }
+}
+
 repositories {
     when (loader) {
         Loader.COMMON -> {}
@@ -150,6 +156,7 @@ repositories {
         Loader.FORGE -> {
             // MixinExtras
             mavenCentral()
+            maven("https://files.minecraftforge.net/maven/")
         }
     }
     if (!loader.isFabric) {
@@ -262,6 +269,7 @@ tasks.named<ProcessResources>("processResources") {
         12001 to 15,
         12002 to 18,
         12004 to 22,
+        12101 to 34,
     )
 
     val replaceProperties = mapOf(
@@ -310,14 +318,16 @@ version = "v$fullModVersion"
 group = props.maven_group
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "17"
-    targetCompatibility = "17"
+    sourceCompatibility = "21"
+    targetCompatibility = "21"
     options.encoding = "UTF-8"
 }
 
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.jvmTarget = "17"
-    kotlinOptions.freeCompilerArgs = listOf("-Xjvm-default=all")
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
+        freeCompilerArgs.set(listOf("-Xjvm-default=all"))
+    }
 }
 
 java {

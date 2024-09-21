@@ -3,12 +3,18 @@ package de.rubixdev.inventorio.mixin.optional.bowfix;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.sugar.Local;
 import de.rubixdev.inventorio.util.BowTester;
-import de.rubixdev.inventorio.util.RandomStuff;
 import me.fallenbreath.conditionalmixin.api.annotation.Condition;
 import me.fallenbreath.conditionalmixin.api.annotation.Restriction;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BowItem;
 import net.minecraft.item.ItemStack;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.util.Hand;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -22,9 +28,17 @@ public class BowItemMixin {
      */
     @ModifyExpressionValue(
         method = "use",
-        at = @At(value = "FIELD", target = "Lnet/minecraft/entity/player/PlayerAbilities;creativeMode:Z")
+        at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;isInCreativeMode()Z")
     )
-    private boolean inventorioFixInfinityBow(boolean original, @Local ItemStack bow) {
-        return original || RandomStuff.getLevelOn(Enchantments.INFINITY, bow) > 0;
+    private boolean inventorioFixInfinityBow(
+        boolean original,
+        World world,
+        PlayerEntity user,
+        Hand hand,
+        @Local ItemStack bow
+    ) {
+        RegistryEntry.Reference<Enchantment> enchantmentReference =
+            world.getRegistryManager().get(RegistryKeys.ENCHANTMENT).entryOf(Enchantments.INFINITY);
+        return original || EnchantmentHelper.getLevel(enchantmentReference, bow) > 0;
     }
 }

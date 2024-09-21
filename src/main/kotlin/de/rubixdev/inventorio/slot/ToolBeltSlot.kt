@@ -2,7 +2,9 @@ package de.rubixdev.inventorio.slot
 
 import de.rubixdev.inventorio.api.ToolBeltSlotTemplate
 import de.rubixdev.inventorio.player.PlayerInventoryAddon
-import de.rubixdev.inventorio.util.*
+import de.rubixdev.inventorio.util.DEEP_POCKETS_EXTRA_HEIGHT
+import de.rubixdev.inventorio.util.Rectangle
+import de.rubixdev.inventorio.util.SLOT_UI_SIZE
 import kotlin.math.min
 import net.minecraft.item.ItemStack
 import net.minecraft.screen.slot.Slot

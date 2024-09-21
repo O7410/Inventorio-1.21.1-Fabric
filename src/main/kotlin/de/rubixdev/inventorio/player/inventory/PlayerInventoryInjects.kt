@@ -1,19 +1,21 @@
 package de.rubixdev.inventorio.player.inventory
 
 import de.rubixdev.inventorio.util.INVENTORY_HOTBAR_RANGE
-import de.rubixdev.inventorio.util.getLevelOn
 import de.rubixdev.inventorio.util.isNotEmpty
 import kotlin.math.min
+import net.minecraft.enchantment.EnchantmentHelper
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.item.ItemStack
 import net.minecraft.item.RangedWeaponItem
+import net.minecraft.registry.RegistryKeys
 
 abstract class PlayerInventoryInjects protected constructor(player: PlayerEntity) : PlayerInventoryExtension(player) {
     fun mendToolBeltItems(xpAmount: Int): Int {
         var xpLeft = xpAmount
         for (itemStack in toolBelt) {
-            if (itemStack.isNotEmpty && itemStack.isDamaged && Enchantments.MENDING.getLevelOn(itemStack) > 0) {
+            val mendingEntry = player.world.registryManager.get(RegistryKeys.ENCHANTMENT).entryOf(Enchantments.MENDING)
+            if (itemStack.isNotEmpty && itemStack.isDamaged && EnchantmentHelper.getLevel(mendingEntry, itemStack) > 0) {
                 val damageRestored = min(xpAmount * 2, itemStack.damage)
                 itemStack.damage -= damageRestored
                 xpLeft = xpAmount - damageRestored / 2

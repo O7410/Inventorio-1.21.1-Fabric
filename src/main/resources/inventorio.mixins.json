@@ -13,11 +13,10 @@
     "ServerPlayNetworkHandlerMixin",
     "accessor.CraftingScreenHandlerAccessor",
     "accessor.ScreenHandlerAccessor",
-    "accessor.SimpleInventoryAccessor",
     "accessor.SlotAccessor",
     "optional.bowfix.BowItemMixin",
     "optional.enderchest.EnderChestBlockMixin",
-    "optional.enderchest.PlayerEntityMixin",
+    "optional.enderchest.EnderChestInventoryMixin",
     "optional.totem.LivingEntityMixin"
   ],
   "client": [

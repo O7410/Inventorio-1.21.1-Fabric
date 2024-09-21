@@ -13,14 +13,14 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 /**
  * This mixin enlarges the Ender Chest's Inventory Screen to 6 rows. To enlarge
- * the actual storage, {@link PlayerEntityMixin#inventorioResizeEnderChest} is
- * used
+ * the actual storage,
+ * {@link EnderChestInventoryMixin#inventorioResizeEnderChest} is used
  */
 @Restriction(require = @Condition(type = Condition.Type.TESTER, tester = EnderChestTester.class))
 @Mixin(value = EnderChestBlock.class)
 public class EnderChestBlockMixin {
     @Redirect(
-        method = "method_17468",
+        method = "method_55773",
         at = @At(
             value = "INVOKE",
             target = "Lnet/minecraft/screen/GenericContainerScreenHandler;createGeneric9x3(ILnet/minecraft/entity/player/PlayerInventory;Lnet/minecraft/inventory/Inventory;)Lnet/minecraft/screen/GenericContainerScreenHandler;"

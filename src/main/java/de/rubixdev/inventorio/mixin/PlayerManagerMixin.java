@@ -2,18 +2,16 @@ package de.rubixdev.inventorio.mixin;
 
 import de.rubixdev.inventorio.packet.InventorioNetworking;
 import de.rubixdev.inventorio.util.MixinHelpers;
+import net.minecraft.entity.Entity;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-//#if MC >= 12002
-import net.minecraft.server.network.ConnectedClientData;
-//#endif
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
@@ -22,12 +20,10 @@ public class PlayerManagerMixin {
      * server to the client
      */
     @Inject(method = "onPlayerConnect", at = @At(value = "RETURN"), require = 0)
-    private void inventorioSetPlayerSettings(/* #if <- hack around formatter */
+    private void inventorioSetPlayerSettings(
         ClientConnection connection,
         ServerPlayerEntity player,
-        //#if MC >= 12002
         ConnectedClientData clientData,
-        //#endif
         CallbackInfo ci
     ) {
         InventorioNetworking.getInstance().s2cSelectUtilitySlot(player);
@@ -42,6 +38,7 @@ public class PlayerManagerMixin {
     private void inventorioSetPlayerSettings(
         ServerPlayerEntity oldPlayer,
         boolean alive,
+        Entity.RemovalReason removalReason,
         CallbackInfoReturnable<ServerPlayerEntity> cir
     ) {
         ServerPlayerEntity newPlayer = cir.getReturnValue();

@@ -1,8 +1,7 @@
 package de.rubixdev.inventorio.player.inventory
 
 import de.rubixdev.inventorio.config.GlobalSettings
-import de.rubixdev.inventorio.enchantment.DeepPocketsEnchantment
-import de.rubixdev.inventorio.mixin.accessor.SimpleInventoryAccessor
+import de.rubixdev.inventorio.enchantment.InventorioEnchantments
 import de.rubixdev.inventorio.packet.InventorioNetworking
 import de.rubixdev.inventorio.player.PlayerInventoryAddon
 import de.rubixdev.inventorio.util.*
@@ -10,10 +9,12 @@ import kotlin.math.sign
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.enchantment.EnchantmentHelper
+import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.SimpleInventory
 import net.minecraft.item.Item
 import net.minecraft.item.ItemStack
+import net.minecraft.registry.RegistryKeys
 import net.minecraft.registry.tag.TagKey
 import net.minecraft.server.network.ServerPlayerEntity
 import net.minecraft.util.collection.DefaultedList
@@ -22,9 +23,8 @@ abstract class PlayerInventoryExtension protected constructor(val player: Player
     SimpleInventory(DEEP_POCKETS_MAX_SIZE + UTILITY_BELT_FULL_SIZE + PlayerInventoryAddon.toolBeltTemplates.size) {
     /** Warning! The length of [toolBelt], and thus [stacks], may differ across play sessions depending on the mods installed
      * We DO need this variable because on NeoForge the parent `stacks` is private. */
-    @Suppress("LeakingThis")
     @JvmField
-    val stacks = (this as SimpleInventoryAccessor).heldStacks!!
+    val stacks: DefaultedList<ItemStack> = this.heldStacks
     @JvmField val deepPockets = stacks.subList(INVENTORY_ADDON_DEEP_POCKETS_RANGE.first, INVENTORY_ADDON_DEEP_POCKETS_RANGE.last + 1)
     @JvmField val utilityBelt = stacks.subList(INVENTORY_ADDON_UTILITY_BELT_RANGE.first, INVENTORY_ADDON_UTILITY_BELT_RANGE.last + 1)
 
@@ -75,7 +75,8 @@ abstract class PlayerInventoryExtension protected constructor(val player: Player
 
     fun dropAll() {
         for ((index, itemStack) in stacks.withIndex()) {
-            if (!EnchantmentHelper.hasVanishingCurse(itemStack)) {
+            val vanishingCurseEntry = player.world.registryManager.get(RegistryKeys.ENCHANTMENT).entryOf(Enchantments.VANISHING_CURSE)
+            if (EnchantmentHelper.getLevel(vanishingCurseEntry, itemStack) == 0) {
                 player.dropItem(itemStack, true, false)
             }
             stacks[index] = ItemStack.EMPTY
@@ -179,11 +180,12 @@ abstract class PlayerInventoryExtension protected constructor(val player: Player
     }
 
     fun getDeepPocketsRowCount(): Int {
-        return EnchantmentHelper.getEquipmentLevel(DeepPocketsEnchantment, player).coerceIn(0, 3)
+        val enchantmentReference = player.registryManager.get(RegistryKeys.ENCHANTMENT).entryOf(InventorioEnchantments.DEEP_POCKETS)
+        return EnchantmentHelper.getEquipmentLevel(enchantmentReference, player).coerceIn(0, 3)
     }
 
     protected fun areItemsSimilar(stack1: ItemStack, stack2: ItemStack): Boolean {
-        return stack1.isNotEmpty && ItemStack.canCombine(stack1, stack2)
+        return stack1.isNotEmpty && ItemStack.areItemsAndComponentsEqual(stack1, stack2)
     }
 
     fun contains(stack: ItemStack): Boolean = stacks.any { areItemsSimilar(it, stack) }

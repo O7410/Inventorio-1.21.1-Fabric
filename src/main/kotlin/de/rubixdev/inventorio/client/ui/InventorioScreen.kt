@@ -3,7 +3,6 @@ package de.rubixdev.inventorio.client.ui
 import com.mojang.blaze3d.systems.RenderSystem
 import de.rubixdev.inventorio.config.GlobalSettings
 import de.rubixdev.inventorio.config.PlayerSettings
-import de.rubixdev.inventorio.duck.RecipeBookLeftOffsetOverride
 import de.rubixdev.inventorio.mixin.client.accessor.HandledScreenAccessor
 import de.rubixdev.inventorio.packet.InventorioNetworking
 import de.rubixdev.inventorio.player.InventorioScreenHandler
@@ -18,6 +17,7 @@ import net.fabricmc.api.Environment
 import net.minecraft.client.MinecraftClient
 import net.minecraft.client.gui.DrawContext
 import net.minecraft.client.gui.Drawable
+import net.minecraft.client.gui.screen.ButtonTextures
 import net.minecraft.client.gui.screen.Screen
 import net.minecraft.client.gui.screen.ingame.AbstractInventoryScreen
 import net.minecraft.client.gui.screen.ingame.CreativeInventoryScreen
@@ -32,16 +32,8 @@ import net.minecraft.screen.slot.SlotActionType
 import net.minecraft.text.Text
 import net.minecraft.util.Identifier
 
-//#if MC >= 12002
-import net.minecraft.client.gui.screen.ButtonTextures
-//#endif
-
-/**
- * Note: **Do not extend this class!** It is only marked as `open` for compatibility purposes.
- */
-// TODO: remove `open` modifier once old api package is removed
 @Environment(EnvType.CLIENT)
-open class InventorioScreen(handler: InventorioScreenHandler, internal val inventory: PlayerInventory) :
+class InventorioScreen(handler: InventorioScreenHandler, internal val inventory: PlayerInventory) :
     AbstractInventoryScreen<InventorioScreenHandler>(handler, inventory, Text.translatable("container.crafting")), RecipeBookProvider {
     private var mouseX = 0f
     private var mouseY = 0f
@@ -72,7 +64,6 @@ open class InventorioScreen(handler: InventorioScreenHandler, internal val inven
         super.init()
         narrow = width < 379
         recipeBook.initialize(width, height, client, narrow, handler)
-        setRecipeLeftOffset()
         open = true
         toggleButton = addToggleButton(this)
         lockedCraftButton = addLockedCraftButton(this)
@@ -88,7 +79,6 @@ open class InventorioScreen(handler: InventorioScreenHandler, internal val inven
                 //$$ 0, 0, 19, RECIPE_BUTTON_TEXTURE,
                 //#endif
             ) {
-                setRecipeLeftOffset()
                 recipeBook.toggleOpen()
                 updateScreenPosition()
             },
@@ -110,6 +100,7 @@ open class InventorioScreen(handler: InventorioScreenHandler, internal val inven
     fun onRefresh() {
         backgroundWidth = GUI_INVENTORY_TOP.width + ((handler.getToolBeltSlotCount() - 1) / ToolBeltSlot.getColumnCapacity(inventoryAddon.getDeepPocketsRowCount())) * SLOT_UI_SIZE
         backgroundHeight = INVENTORY_HEIGHT + inventoryAddon.getDeepPocketsRowCount() * SLOT_UI_SIZE
+        // TODO: why inventoryAddon.getDeepPocketsRowCount() is zero when dragging the leggings to the slot
         updateScreenPosition()
     }
 
@@ -122,15 +113,11 @@ open class InventorioScreen(handler: InventorioScreenHandler, internal val inven
         mouseDown = true
     }
 
-    private fun setRecipeLeftOffset() {
-        (recipeBook as RecipeBookLeftOffsetOverride).`inventorio$setBackgroundWidth`(backgroundWidth)
-    }
-
     private fun findLeftEdge(): Int = when (PlayerSettings.centeredScreen.boolValue) {
         true -> when (recipeBook.isOpen && !narrow) {
             true -> (width - backgroundWidth + RecipeBookWidget.field_32408 + 2) / 2
             false -> (width - backgroundWidth) / 2
-        }.also { setRecipeLeftOffset() }
+        }
         false -> recipeBook.findLeftEdge(width, GUI_INVENTORY_TOP.width - 22)
     }
 
@@ -371,17 +358,17 @@ open class InventorioScreen(handler: InventorioScreenHandler, internal val inven
     // ===================================================
     companion object {
         //#if MC >= 12002
-        private val TOGGLE_BUTTON_ON_TEXTURES = ButtonTextures(Identifier("inventorio", "toggle_button_on"), Identifier("inventorio", "toggle_button_active_on"))
-        private val TOGGLE_BUTTON_OFF_TEXTURES = ButtonTextures(Identifier("inventorio", "toggle_button_off"), Identifier("inventorio", "toggle_button_active_off"))
-        private val LOCK_BUTTON_TEXTURES = ButtonTextures(Identifier("inventorio", "lock_button"), Identifier("inventorio", "lock_button_active"))
-        private val TOGGLE_BUTTON_ON_TEXTURES_DARK = ButtonTextures(Identifier("inventorio", "toggle_button_on_dark"), Identifier("inventorio", "toggle_button_active_on_dark"))
-        private val TOGGLE_BUTTON_OFF_TEXTURES_DARK = ButtonTextures(Identifier("inventorio", "toggle_button_off_dark"), Identifier("inventorio", "toggle_button_active_off_dark"))
-        private val LOCK_BUTTON_TEXTURES_DARK = ButtonTextures(Identifier("inventorio", "lock_button_dark"), Identifier("inventorio", "lock_button_active_dark"))
+        private val TOGGLE_BUTTON_ON_TEXTURES = ButtonTextures(Identifier.of("inventorio", "toggle_button_on"), Identifier.of("inventorio", "toggle_button_active_on"))
+        private val TOGGLE_BUTTON_OFF_TEXTURES = ButtonTextures(Identifier.of("inventorio", "toggle_button_off"), Identifier.of("inventorio", "toggle_button_active_off"))
+        private val LOCK_BUTTON_TEXTURES = ButtonTextures(Identifier.of("inventorio", "lock_button"), Identifier.of("inventorio", "lock_button_active"))
+        private val TOGGLE_BUTTON_ON_TEXTURES_DARK = ButtonTextures(Identifier.of("inventorio", "toggle_button_on_dark"), Identifier.of("inventorio", "toggle_button_active_on_dark"))
+        private val TOGGLE_BUTTON_OFF_TEXTURES_DARK = ButtonTextures(Identifier.of("inventorio", "toggle_button_off_dark"), Identifier.of("inventorio", "toggle_button_active_off_dark"))
+        private val LOCK_BUTTON_TEXTURES_DARK = ButtonTextures(Identifier.of("inventorio", "lock_button_dark"), Identifier.of("inventorio", "lock_button_active_dark"))
         //#else
         //$$ private val RECIPE_BUTTON_TEXTURE = Identifier("textures/gui/recipe_button.png")
         //#endif
-        private val BACKGROUND_TEXTURE = Identifier("inventorio", "textures/gui/player_inventory.png")
-        private val BACKGROUND_TEXTURE_DARK = Identifier("inventorio", "textures/gui/player_inventory_dark.png")
+        private val BACKGROUND_TEXTURE = Identifier.of("inventorio", "textures/gui/player_inventory.png")
+        private val BACKGROUND_TEXTURE_DARK = Identifier.of("inventorio", "textures/gui/player_inventory_dark.png")
 
         private val initConsumers = mutableMapOf<Identifier, Consumer<InventorioScreen>>()
 

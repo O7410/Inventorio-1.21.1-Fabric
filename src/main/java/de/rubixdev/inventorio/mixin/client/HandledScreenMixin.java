@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Slice;
 
-@Mixin(value = HandledScreen.class)
+@Mixin(HandledScreen.class)
 @Environment(EnvType.CLIENT)
 public class HandledScreenMixin {
     @Shadow

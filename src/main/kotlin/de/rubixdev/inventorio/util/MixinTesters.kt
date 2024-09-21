@@ -20,12 +20,6 @@ class TotemTester : ConditionTester {
     override fun isSatisfied(mixinClassName: String) = GlobalSettings.totemFromUtilityBelt.boolValue
 }
 
-//#if FABRIC
-//$$ class TrinketsTester : ConditionTester {
-//$$     override fun isSatisfied(mixinClassName: String) = GlobalSettings.trinketsIntegration.boolValue
-//$$ }
-//#elseif FORGELIKE
-//$$ class CuriosTester : ConditionTester {
-//$$     override fun isSatisfied(mixinClassName: String) = GlobalSettings.curiosIntegration.boolValue
-//$$ }
-//#endif
+class TrinketsTester : ConditionTester {
+    override fun isSatisfied(mixinClassName: String) = GlobalSettings.trinketsIntegration.boolValue
+}

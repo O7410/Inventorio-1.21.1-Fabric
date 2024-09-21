@@ -5,6 +5,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,7 +22,7 @@ public class InGameHudMixinHP {
      * work in (Neo)Forge and is substituted with a (Neo)Forge event.
      */
     @Inject(method = "render", at = @At(value = "RETURN"))
-    private void inventorioRenderHotbarAddons(DrawContext context, float tickDelta, CallbackInfo ci) {
+    private void inventorioRenderHotbarAddons(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         HotbarHUDRenderer.INSTANCE.renderHotbarAddons(context);
     }
 

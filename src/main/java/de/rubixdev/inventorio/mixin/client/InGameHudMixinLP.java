@@ -7,6 +7,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,12 +23,16 @@ public class InGameHudMixinLP {
      * is selected.
      */
     @Inject(method = "renderHotbar", at = @At(value = "HEAD"), cancellable = true, require = 0)
-    private void inventorioRenderSegmentedHotbar(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void inventorioRenderSegmentedHotbar(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (HotbarHUDRenderer.INSTANCE.renderSegmentedHotbar(context)) ci.cancel();
     }
 
     @Inject(method = "renderHotbar", at = @At(value = "RETURN"), require = 0)
-    private void inventorioRenderFunctionOnlySelector(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void inventorioRenderFunctionOnlySelector(
+        DrawContext context,
+        RenderTickCounter tickCounter,
+        CallbackInfo ci
+    ) {
         HotbarHUDRenderer.INSTANCE.renderFunctionOnlySelector(context);
     }
 

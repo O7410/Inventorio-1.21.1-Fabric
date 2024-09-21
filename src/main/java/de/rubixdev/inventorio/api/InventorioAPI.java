@@ -28,53 +28,53 @@ public final class InventorioAPI {
             InventorioAPI
                 .registerToolBeltSlotIfNotExists(
                     InventorioAPI.SLOT_PICKAXE,
-                    new Identifier("inventorio", "textures/gui/empty/pickaxe.png")
+                    Identifier.of("inventorio", "textures/gui/empty/pickaxe.png")
                 )
-                .addAllowingCondition(((itemStack, addon) -> itemStack.getItem() instanceof PickaxeItem))
-                .addAllowingTag(new Identifier("inventorio", "pickaxes"))
-                .addDenyingTag(new Identifier("inventorio", "pickaxes_blacklist"));
+                .addAllowingCondition((itemStack, addon) -> itemStack.getItem() instanceof PickaxeItem)
+                .addAllowingTag(Identifier.of("inventorio", "pickaxes"))
+                .addDenyingTag(Identifier.of("inventorio", "pickaxes_blacklist"));
 
             InventorioAPI
                 .registerToolBeltSlotIfNotExists(
                     InventorioAPI.SLOT_SWORD,
-                    new Identifier("inventorio", "textures/gui/empty/sword.png")
+                    Identifier.of("inventorio", "textures/gui/empty/sword.png")
                 )
                 .addAllowingCondition(
                     ((itemStack, addon) -> itemStack.getItem() instanceof SwordItem
                         || itemStack.getItem() instanceof TridentItem)
                 )
-                .addAllowingTag(new Identifier("inventorio", "swords"))
-                .addDenyingTag(new Identifier("inventorio", "swords_blacklist"));
+                .addAllowingTag(Identifier.of("inventorio", "swords"))
+                .addDenyingTag(Identifier.of("inventorio", "swords_blacklist"));
 
             InventorioAPI
                 .registerToolBeltSlotIfNotExists(
                     InventorioAPI.SLOT_AXE,
-                    new Identifier("inventorio", "textures/gui/empty/axe.png")
+                    Identifier.of("inventorio", "textures/gui/empty/axe.png")
                 )
                 .addAllowingCondition(((itemStack, addon) -> itemStack.getItem() instanceof AxeItem))
-                .addAllowingTag(new Identifier("inventorio", "axes"))
-                .addDenyingTag(new Identifier("inventorio", "axes_blacklist"));
+                .addAllowingTag(Identifier.of("inventorio", "axes"))
+                .addDenyingTag(Identifier.of("inventorio", "axes_blacklist"));
 
             InventorioAPI
                 .registerToolBeltSlotIfNotExists(
                     InventorioAPI.SLOT_SHOVEL,
-                    new Identifier("inventorio", "textures/gui/empty/shovel.png")
+                    Identifier.of("inventorio", "textures/gui/empty/shovel.png")
                 )
                 .addAllowingCondition(((itemStack, addon) -> itemStack.getItem() instanceof ShovelItem))
-                .addAllowingTag(new Identifier("inventorio", "shovels"))
-                .addDenyingTag(new Identifier("inventorio", "shovels_blacklist"));
+                .addAllowingTag(Identifier.of("inventorio", "shovels"))
+                .addDenyingTag(Identifier.of("inventorio", "shovels_blacklist"));
 
             InventorioAPI
                 .registerToolBeltSlotIfNotExists(
                     InventorioAPI.SLOT_HOE,
-                    new Identifier("inventorio", "textures/gui/empty/hoe.png")
+                    Identifier.of("inventorio", "textures/gui/empty/hoe.png")
                 )
                 .addAllowingCondition(
                     ((itemStack, addon) -> itemStack.getItem() instanceof HoeItem
                         || itemStack.getItem() instanceof ShearsItem)
                 )
-                .addAllowingTag(new Identifier("inventorio", "hoes"))
-                .addDenyingTag(new Identifier("inventorio", "hoes_blacklist"));
+                .addAllowingTag(Identifier.of("inventorio", "hoes"))
+                .addDenyingTag(Identifier.of("inventorio", "hoes_blacklist"));
         }
     }
 
@@ -117,7 +117,7 @@ public final class InventorioAPI {
      * @param slotName  Unique string id for the slot. Default slots available
      *                  at {@link InventorioAPI} constants.
      * @param emptyIcon Identifier/ResourceLocation that leads to an icon, e.g.
-     *                  <code>new Identifier("your_mod", "textures/gui/empty/your_tool_slot.png")</code>
+     *                  <code>Identifier.of("your_mod", "textures/gui/empty/your_tool_slot.png")</code>
      * @return If <code>slotName</code> has already been taken, returns the
      *         existing {@link ToolBeltSlotTemplate}.<br>
      *         Creates a new one and returns it otherwise.<br>

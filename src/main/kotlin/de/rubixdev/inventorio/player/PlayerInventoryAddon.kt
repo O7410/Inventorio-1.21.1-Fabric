@@ -8,8 +8,10 @@ import de.rubixdev.inventorio.client.ui.InventorioScreen
 import de.rubixdev.inventorio.config.GlobalSettings
 import de.rubixdev.inventorio.mixin.client.accessor.MinecraftClientAccessor
 import de.rubixdev.inventorio.player.inventory.PlayerInventoryExtraStuff
-import de.rubixdev.inventorio.util.*
-import java.lang.IllegalStateException
+import de.rubixdev.inventorio.util.PlayerDuck
+import de.rubixdev.inventorio.util.ToolBeltMode
+import de.rubixdev.inventorio.util.isNotEmpty
+import de.rubixdev.inventorio.util.logger
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.MinecraftClient
@@ -24,11 +26,8 @@ import net.minecraft.util.Util
  * This class is responsible for the inventory addon itself,
  * while [InventorioScreen] is responsible for the visuals of the Player Screen UI
  * and [InventorioScreenHandler] is responsible for the slots and player interacting with the slots
- *
- * Note: **Do not extend this class!** It is only marked as `open` for compatibility purposes.
 */
-// TODO: remove `open` modifier once old api package is removed
-open class PlayerInventoryAddon internal constructor(player: PlayerEntity) : PlayerInventoryExtraStuff(player) {
+class PlayerInventoryAddon internal constructor(player: PlayerEntity) : PlayerInventoryExtraStuff(player) {
     init {
         bNoMoreToolBeltSlots = true
     }
@@ -82,14 +81,6 @@ open class PlayerInventoryAddon internal constructor(player: PlayerEntity) : Pla
                 player.networkHandler.sendPacket(packet)
             }
         }
-    }
-
-    protected fun copyFrom(other: PlayerInventoryAddon) {
-        cloneFrom(other)
-        prevSelectedSlot = other.prevSelectedSlot
-        displayToolTimeStamp = other.displayToolTimeStamp
-        displayTool = other.displayTool
-        swappedHands = other.swappedHands
     }
 
     @Environment(EnvType.CLIENT)

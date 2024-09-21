@@ -23,9 +23,9 @@ import org.joml.Matrix4f
 
 @Environment(EnvType.CLIENT)
 object HotbarHUDRenderer {
-    private val WIDGETS_TEXTURE = Identifier("inventorio", "textures/gui/widgets.png")
-    private val WIDGETS_TEXTURE_DARK = Identifier("inventorio", "textures/gui/widgets_dark.png")
-    private val client = MinecraftClient.getInstance()!!
+    private val WIDGETS_TEXTURE = Identifier.of("inventorio", "textures/gui/widgets.png")
+    private val WIDGETS_TEXTURE_DARK = Identifier.of("inventorio", "textures/gui/widgets_dark.png")
+    private val client = MinecraftClient.getInstance()
 
     fun renderSegmentedHotbar(drawContext: DrawContext): Boolean {
         if (PlayerSettings.segmentedHotbar.value == SegmentedHotbar.OFF
@@ -286,7 +286,11 @@ object HotbarHUDRenderer {
                 val crashReportSection = crashReport.addElement("Item being rendered")
                 crashReportSection.add("Item Type") { stack.item.toString() }
                 crashReportSection.add("Item Damage") { stack.damage.toString() }
-                crashReportSection.add("Item NBT") { stack.nbt.toString() }
+                //#if MC >= 12100
+                crashReportSection.add("Item Components") { stack.components.toString() }
+                //#else
+                //$$ crashReportSection.add("Item NBT") { stack.nbt.toString() }
+                //#endif
                 crashReportSection.add("Item Foil") { stack.hasGlint().toString() }
                 throw CrashException(crashReport)
             }

@@ -2,17 +2,17 @@ import com.diffplug.gradle.spotless.BaseKotlinExtension
 
 plugins {
     id("maven-publish")
-    id("dev.architectury.loom") version "1.5-SNAPSHOT" apply false
+    id("dev.architectury.loom") version "1.7-SNAPSHOT" apply false
     // TODO: the preprocessor doesn't yet work with Kotlin 1.9
     // https://github.com/ReplayMod/remap/pull/17
-    kotlin("jvm") version "1.8.22" apply false
+    kotlin("jvm") version "2.0.20" apply false
 
     // https://github.com/ReplayMod/preprocessor
     // https://github.com/Fallen-Breath/preprocessor
-    id("com.replaymod.preprocess") version "ce1aeb2b"
+    id("com.replaymod.preprocess") version "88169fc"
 
     // https://github.com/Fallen-Breath/yamlang
-    id("me.fallenbreath.yamlang") version "1.3.1" apply false
+    id("me.fallenbreath.yamlang") version "1.4.0" apply false
 
     id("com.diffplug.spotless") version "6.25.0"
 }
@@ -28,27 +28,7 @@ repositories {
 
 @Suppress("LocalVariableName", "ktlint:standard:property-naming")
 preprocess {
-    val mc12001_common = createNode("1.20.1-common", 1_20_01, "yarn")
-    val mc12001_fabric = createNode("1.20.1-fabric", 1_20_01, "yarn")
-    val mc12001_forge = createNode("1.20.1-forge", 1_20_01, "yarn")
-
-    val mc12002_fabric = createNode("1.20.2-fabric", 1_20_02, "yarn")
-    val mc12002_neoforge = createNode("1.20.2-neoforge", 1_20_02, "yarn")
-
-    val mc12004_common = createNode("1.20.4-common", 1_20_04, "yarn")
-    val mc12004_fabric = createNode("1.20.4-fabric", 1_20_04, "yarn")
-    val mc12004_neoforge = createNode("1.20.4-neoforge", 1_20_04, "yarn")
-
-    // 1.20.1
-    mc12002_fabric.link(mc12001_fabric, null)
-    mc12004_common.link(mc12001_common, null)
-    mc12001_common.link(mc12001_forge, file("versions/mappings-common-forge.txt"))
-    // 1.20.2
-    mc12004_fabric.link(mc12002_fabric, null)
-    mc12004_neoforge.link(mc12002_neoforge, null)
-    // 1.20.4
-    mc12004_common.link(mc12004_fabric, null)
-    mc12004_common.link(mc12004_neoforge, file("versions/mappings-common-neoforge.txt"))
+    val mc12101_fabric = createNode("1.21.1-fabric", 1_21_01, "yarn")
 }
 
 spotless {
